@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CrudDao<T> {
-    Optional<T> find(long id);
+    Optional<T> find(int id);
 
     List<T> findAll();
 
-    void delete(long id);
+    void delete(int id);
 
     void save(T model);
 

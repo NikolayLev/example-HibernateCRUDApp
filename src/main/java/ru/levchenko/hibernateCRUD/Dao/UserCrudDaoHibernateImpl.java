@@ -4,13 +4,9 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import ru.levchenko.hibernateCRUD.models.User;
 import ru.levchenko.hibernateCRUD.models.UserRole;
+import ru.levchenko.hibernateCRUD.models.UserRolesENUM;
 
 import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,15 +21,17 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     }
 
     @Override
-    public List<UserRole> roles(long id) {
+    public List<UserRole> roles(int id) {
         List<UserRole> roleList;
 
         session = sessionFactory.openSession();
         session.getTransaction().begin();
 
-        Query query = session.createQuery("from UserRole as ur where ur.user.id =:id", UserRole.class);
-        query.setParameter("id", id);
-        roleList = query.getResultList();
+        roleList = session.createQuery(" from User where id=:id", User.class)
+                .setParameter("id", id)
+                .getSingleResult()
+                .getRoles();
+
         session.getTransaction().commit();
         session.close();
         session = null;
@@ -43,13 +41,13 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
 
 
     @Override
-    public List<User> findUsersByRole(String role) {
+    public List<User> findUsersByRole(UserRolesENUM role) {
         List<User> userList;
 
         session = sessionFactory.openSession();
         session.getTransaction().begin();
 
-        Query query = session.createQuery("select user from UserRole as ur where ur.userRoleKey.role =:role", User.class);
+        Query query = session.createQuery("select distinct u.users FROM UserRole u JOIN u.users us WHERE u.role= :role");
         query.setParameter("role", role);
         userList = query.getResultList();
         session.getTransaction().commit();
@@ -60,7 +58,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     }
 
     @Override
-    public Optional<User> find(long id) {
+    public Optional<User> find(int id) {
         Optional<User> candidate;
 
         session = sessionFactory.openSession();
@@ -84,7 +82,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
         session = sessionFactory.openSession();
         session.getTransaction().begin();
 
-        Query query = session.createQuery(" from User ", User.class);
+        Query query = session.createQuery(" from User", User.class);
 
         userList = query.getResultList();
         session.getTransaction().commit();
@@ -94,7 +92,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     }
 
     @Override
-    public void delete(long id) {
+    public void delete(int id) {
 
         session = sessionFactory.openSession();
         session.getTransaction().begin();
@@ -123,50 +121,13 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     public void update(User model) {
         session = sessionFactory.openSession();
         session.getTransaction().begin();
-
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery<User> userCriteriaQuery = cb.createQuery(User.class);
-
-        Root<User> userRoot = userCriteriaQuery.from(User.class);
-
-        //Join<User, UserRole> userRoleJoin = userRoot.join("roles"); решить проблемы select n+1
-
-        userCriteriaQuery.distinct(true);
-        userCriteriaQuery.where(cb.equal(userRoot.get("id"), model.getId()));
-        userCriteriaQuery.select(userRoot);
-
-        List<UserRole> userRoles = session.createQuery(userCriteriaQuery)
-                .getSingleResult().getRoles();
-
-        UserRole[] userRolesArray = userRoles.toArray(new UserRole[userRoles.size()]);
-
-        updateRoleByUser(model, userRolesArray, session);
-
+        session.update(model);
         session.getTransaction().commit();
         session.close();
         session = null;
     }
 
 
-    private void updateRoleByUser(User updateUser, UserRole[] oldUserRoles, Session session) {
-
-        for (UserRole userRole : oldUserRoles) {
-            if (!updateUser.getRoles().stream().anyMatch((a -> a.equals(userRole)))) {
-                session.delete(userRole);
-                session.flush();
-            }
-        }
-        Iterator<UserRole> iteratorFromUpdateUser = updateUser.getRoles().iterator();
-        while (iteratorFromUpdateUser.hasNext()) {
-            UserRole userRole = iteratorFromUpdateUser.next();
-            if (!Arrays.stream(oldUserRoles).anyMatch(a -> a.equals(userRole))) {
-                session.saveOrUpdate(userRole);
-                session.flush();
-            }
-        }
-        session.update(updateUser);
-
-    }
 }
 
 

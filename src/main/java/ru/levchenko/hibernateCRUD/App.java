@@ -30,15 +30,14 @@ public class App {
             UserCrudDaoHibernateImpl crudDaoHQL = new UserCrudDaoHibernateImpl(sessionFactory);
             System.out.println(crudDaoHQL.roles(11));
             System.out.println("1");
-            System.out.println(crudDaoHQL.findUsersByRole(UserRolesENUM.USER.name()));
+            System.out.println(crudDaoHQL.findUsersByRole(UserRolesENUM.USER));
             System.out.println("2");
-            System.out.println(crudDaoHQL.find(11));
-            System.out.println("3");
-
             System.out.println(crudDaoHQL.findAll());
             System.out.println("4");
-            user = crudDaoHQL.find(11).get();
-            user.getRoles().remove(2);
+            user = crudDaoHQL.find(5).get();
+            user.setName("Rerere");
+            user.setPassword("family");
+            user.getRoles().remove(1);
             System.out.println("5");
             crudDaoHQL.update(user);
 
