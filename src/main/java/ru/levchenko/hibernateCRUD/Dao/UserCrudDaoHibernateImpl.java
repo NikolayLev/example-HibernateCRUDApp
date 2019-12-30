@@ -14,7 +14,6 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
 
     private SessionFactory sessionFactory;
 
-    private Session session;
 
     public UserCrudDaoHibernateImpl(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
@@ -24,7 +23,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     public List<UserRole> roles(int id) {
         List<UserRole> roleList;
 
-        session = sessionFactory.openSession();
+        Session session = sessionFactory.openSession();
         session.getTransaction().begin();
 
         roleList = session.createQuery(" from User where id=:id", User.class)
@@ -44,7 +43,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     public List<User> findUsersByRole(UserRolesENUM role) {
         List<User> userList;
 
-        session = sessionFactory.openSession();
+        Session session = sessionFactory.openSession();
         session.getTransaction().begin();
 
         Query query = session.createQuery("select distinct u.users FROM UserRole u JOIN u.users us WHERE u.role= :role");
@@ -61,7 +60,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     public Optional<User> find(int id) {
         Optional<User> candidate;
 
-        session = sessionFactory.openSession();
+        Session session = sessionFactory.openSession();
         session.getTransaction().begin();
 
         Query query = session.createQuery("from User as u where u.id = :id", User.class);
@@ -79,7 +78,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     public List<User> findAll() {
         List<User> userList;
 
-        session = sessionFactory.openSession();
+        Session session = sessionFactory.openSession();
         session.getTransaction().begin();
 
         Query query = session.createQuery(" from User", User.class);
@@ -94,7 +93,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     @Override
     public void delete(int id) {
 
-        session = sessionFactory.openSession();
+        Session session = sessionFactory.openSession();
         session.getTransaction().begin();
 
         Query query = session.createQuery("delete from User where id=:id", User.class);
@@ -108,7 +107,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
 
     @Override
     public void save(User model) {
-        session = sessionFactory.openSession();
+        Session session = sessionFactory.openSession();
         session.getTransaction().begin();
         session.saveOrUpdate(model);
         session.getTransaction().commit();
@@ -119,7 +118,7 @@ public class UserCrudDaoHibernateImpl implements UserCrudDao {
     //CriteriaQuery
     @Override
     public void update(User model) {
-        session = sessionFactory.openSession();
+        Session session = sessionFactory.openSession();
         session.getTransaction().begin();
         session.update(model);
         session.getTransaction().commit();
